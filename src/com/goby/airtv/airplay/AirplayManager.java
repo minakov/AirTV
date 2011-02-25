@@ -6,18 +6,23 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
 
 public class AirplayManager
 {
 	private JmDNS dns;
+	private final Activity activity;
 	
 	/**
 	 * Constructor.
 	 */
-	public AirplayManager()
+	public AirplayManager(Activity activity)
 	{
-		
+		this.activity = activity;
 	}
 	
 	/**
@@ -25,34 +30,44 @@ public class AirplayManager
 	 */
 	public void start()
 	{
+		Log.d("Airplay", "start");
+		
 		try
 		{
-			dns = JmDNS.create();
-			dns.addServiceListener("_airplay._tcp", new ServiceListener()
+			WifiManager wifi = (WifiManager)activity.getSystemService( Context.WIFI_SERVICE );
+			if(wifi != null)
 			{
-				
-				@Override
-				public void serviceResolved(ServiceEvent event)
+			    MulticastLock lock = wifi.createMulticastLock("mylock");
+			    lock.acquire();
+			    
+				dns = JmDNS.create();
+				dns.addServiceListener("_airplay._tcp", new ServiceListener()
 				{
-					Log.d("AirplayManager", "service resolved : " + event.getName());
-				}
-				
-				@Override
-				public void serviceRemoved(ServiceEvent event)
-				{
-					Log.d("AirplayManager", "service removed : " + event.getName());
-				}
-				
-				@Override
-				public void serviceAdded(ServiceEvent event)
-				{
-					Log.d("AirplayManager", "service added : " + event.getName());
-				}
-			});
+					
+					@Override
+					public void serviceResolved(ServiceEvent event)
+					{
+						Log.d("Airplay", "service resolved : " + event.getName());
+					}
+					
+					@Override
+					public void serviceRemoved(ServiceEvent event)
+					{
+						Log.d("Airplay", "service removed : " + event.getName());
+					}
+					
+					@Override
+					public void serviceAdded(ServiceEvent event)
+					{
+						Log.d("Airplay", "service added : " + event.getName());
+					}
+				});
+			}
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
+			Log.d("Airplay", "error : " + e.getLocalizedMessage());
 		}
 	}
 }

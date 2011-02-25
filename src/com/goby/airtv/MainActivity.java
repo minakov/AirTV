@@ -14,10 +14,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        Log.d("MainActivity", "start");
-        
         // Start the Airplay Manager
-        AirplayManager manager = new AirplayManager();
+        AirplayManager manager = new AirplayManager(this);
         manager.start();
     }
 }
